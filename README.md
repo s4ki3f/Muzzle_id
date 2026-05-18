@@ -51,6 +51,59 @@ lib/
    flutter run
    ```
 
+## 🤖 Collaborator & Android Testing Guide
+
+This application is designed to be **offline-first**. This means your collaborator can immediately build, run, and optimize the application on a physical Android device without needing a Firebase project setup or configuration files.
+
+### 🔌 1. Running & Testing Offline (No Firebase Needed)
+The biometric capture, real-time image checks (blur & brightness), local Hive database queue, and user interface can be fully tested offline.
+1. **Enable Developer Options** on the physical Android device:
+   * Go to **Settings > About Phone** and tap **Build Number** 7 times.
+   * Go back to **Settings > System > Developer Options** and enable **USB Debugging**.
+2. **Connect the device** to the development machine via USB.
+3. Run `flutter devices` to ensure the device is recognized.
+4. Execute the application on the device:
+   * ```bash
+     flutter run
+     ```
+*Note: Any captured biometric enrollments will gracefully queue up in the local database (`uploadQueue`) instead of failing or crashing the app, as Firebase initialization errors are caught safely.*
+
+### 📸 2. Simulating Muzzle Patterns for Camera Testing
+Because cattle biometrics require capturing fine muzzle details, testing the custom camera UI on a real animal is not always possible in an office setup:
+* **Recommendation**: Print out high-resolution muzzle patterns or display them on a secondary high-contrast screen.
+* Point the Android device camera at the pattern to test:
+  * **Real-time blur estimation** (adjusting distance to keep details sharp).
+  * **Real-time brightness checks** (testing under shadows/overexposed lighting).
+  * **Automatic frame collection & queuing**.
+
+### 🔥 3. (Optional) Plugging in a Custom Firebase Backend
+If your collaborator wants to test the background synchronization and Firestore/Storage uploads:
+1. Go to the [Firebase Console](https://console.firebase.google.com/) and create a new project.
+2. Add an **Android App** to the project.
+   * **Package Name**: `com.example.muzzle_id` (must match the package defined in `/android/app/build.gradle.kts`).
+3. Download the generated `google-services.json` file.
+4. Place `google-services.json` in the `/android/app/` directory of this project.
+5. Apply the Google Services Gradle plugins:
+   * **Project build.gradle (`/android/build.gradle.kts`)**:
+     Add the Google services dependency under plugins:
+     ```kotlin
+     plugins {
+         // ... existing plugins
+         id("com.google.gms.google-services") version "4.4.1" apply false
+     }
+     ```
+   * **App build.gradle (`/android/app/build.gradle.kts`)**:
+     Apply the plugin at the top of the file:
+     ```kotlin
+     plugins {
+         // ... existing plugins
+         id("com.google.gms.google-services")
+     }
+     ```
+6. The app will now automatically initialize and sync uploads to your custom Firebase console when internet connectivity is active.
+
+---
+
 ## 📜 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
@@ -58,3 +111,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 *Developed with ❤️ for the livestock industry.*
+
